@@ -30,18 +30,23 @@ const HashState = struct {
     }
 
     fn hash_block(self: *HashState, data: []const u8) u64 {
-        var buf: [32]u8 = .{0} ** 32;
-        const count = @min(data.len, 32);
-        std.mem.copyBackwards(u8, &buf, data[0..count]);
-        self.count = @addWithOverflow(self.count, count)[0];
-
-        const parts = std.mem.bytesAsSlice(u64, &buf);
+        var buf: []const u8 = undefined;
+        var count: usize = 32;
+        if (data.len >= 32) {
+            buf = data[0..32];
+        } else {
+            var tmp: [32]u8 = .{0} ** 32;
+            count = data.len;
+            std.mem.copyBackwards(u8, &tmp, data[0..count]);
+            buf = &tmp;
+        }
+        const parts = std.mem.bytesAsSlice(u64, buf);
         self.a ^= parts[0];
         self.b ^= parts[1];
         self.c ^= parts[2];
         self.d ^= parts[3];
+        self.count = @addWithOverflow(self.count, count)[0];
         self.mix();
-
         return count;
     }
 
