@@ -29,18 +29,6 @@ const HashState = struct {
         return std.fmt.bytesToHex(bytes, .lower);
     }
 
-    pub fn hash(data: []const u8) [40]u8 {
-        var hasher = HashState.init();
-        var buf: []const u8 = data;
-
-        while (buf.len > 0) {
-            const size = hasher.hash_block(buf);
-            buf = buf[size..];
-        }
-        hasher.finalize();
-        return hasher.digest();
-    }
-
     fn hash_block(self: *HashState, data: []const u8) u64 {
         var buf: [32]u8 = .{0} ** 32;
         const count = @min(data.len, 32);
@@ -132,83 +120,36 @@ const Hasher = struct {
 
 test "Empty (no input data)" {
     const input = [_]u8{};
-    const result = HashState.hash(&input);
+    const result = Hasher.hash(&input);
     try testing.expect(std.mem.eql(u8, &result, "68c8213b7a76b8ed267dddb3d8717bb3b6e7cc0a"));
 }
 
 test "A single zero byte" {
     const input = [_]u8{ 0 };
-    const result = HashState.hash(&input);
+    const result = Hasher.hash(&input);
     try testing.expect(std.mem.eql(u8, &result, "3cf6833cca9c4d5e211318577bab74bf12a4f090"));
 }
 
 test "The ascii string '0123456789'" {
     const input: []const u8 = "0123456789";
-    const result = HashState.hash(input);
+    const result = Hasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "a7d324bde0bf6ce3427701628f0f8fc329c2a116"));
 }
 
 test "The ascii string 'abcdefghijklmnopqrstuvwxyz'" {
     const input: []const u8 = "abcdefghijklmnopqrstuvwxyz";
-    const result = HashState.hash(input);
+    const result = Hasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "f1be4be1a0f9eae6500fb2f6b64f3daa3990ac1a"));
 }
 
 test "The ascii string 'This string is exactly 32 bytes.'" {
     const input: []const u8 = "This string is exactly 32 bytes.";
-    const result = HashState.hash(input);
+    const result = Hasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "f7c5e4763d89bddce33e97712b712d869aabcfe9"));
 }
 
 test "The ascii string 'The quick brown fox jumps over the lazy dog.'" {
     const input: []const u8 = "The quick brown fox jumps over the lazy dog.";
-    const result = HashState.hash(input);
-    try testing.expect(std.mem.eql(u8, &result, "de77f1c134228be1b5b25c941d5102f87f3e6d39"));
-}
-
-test "stream - Empty (no input data)" {
-    var hasher = Hasher.init();
-    hasher.finalize();
-    const result = hasher.digest();
-    try testing.expect(std.mem.eql(u8, &result, "68c8213b7a76b8ed267dddb3d8717bb3b6e7cc0a"));
-}
-
-test "stream - A single zero byte" {
-    var hasher = Hasher.init();
-    hasher.update(&.{ 0 });
-    hasher.finalize();
-    const result = hasher.digest();
-    try testing.expect(std.mem.eql(u8, &result, "3cf6833cca9c4d5e211318577bab74bf12a4f090"));
-}
-
-test "stream - The ascii string '0123456789'" {
-    var hasher = Hasher.init();
-    hasher.update("0123456789");
-    hasher.finalize();
-    const result = hasher.digest();
-    try testing.expect(std.mem.eql(u8, &result, "a7d324bde0bf6ce3427701628f0f8fc329c2a116"));
-}
-
-test "stream - The ascii string 'abcdefghijklmnopqrstuvwxyz'" {
-    var hasher = Hasher.init();
-    hasher.update("abcdefghijklmnopqrstuvwxyz");
-    hasher.finalize();
-    const result = hasher.digest();
-    try testing.expect(std.mem.eql(u8, &result, "f1be4be1a0f9eae6500fb2f6b64f3daa3990ac1a"));
-}
-
-test "stream - The ascii string 'This string is exactly 32 bytes.'" {
-    var hasher = Hasher.init();
-    hasher.update("This string is exactly 32 bytes.");
-    hasher.finalize();
-    const result = hasher.digest();
-    try testing.expect(std.mem.eql(u8, &result, "f7c5e4763d89bddce33e97712b712d869aabcfe9"));
-}
-
-test "stream - The ascii string 'The quick brown fox jumps over the lazy dog.'" {
-    var hasher = Hasher.init();
-    hasher.update("The quick brown fox jumps over the lazy dog.");
-    hasher.finalize();
-    const result = hasher.digest();
+    const result = Hasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "de77f1c134228be1b5b25c941d5102f87f3e6d39"));
 }
