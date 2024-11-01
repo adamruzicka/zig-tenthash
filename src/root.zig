@@ -62,7 +62,7 @@ const HashState = struct {
     }
 };
 
-const TentHasher = struct {
+pub const TentHasher = struct {
     state: HashState,
     buf: [32]u8,
     buf_count: u8,
