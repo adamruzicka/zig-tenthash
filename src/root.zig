@@ -90,7 +90,7 @@ const Hasher = struct {
             const count = @min(data.len, 32 - self.buf_count);
             std.mem.copyBackwards(u8, self.buf[self.buf_count..], buf[0..count]);
             self.buf_count += count;
-            if (count < 32) return;
+            if (self.buf_count < 32) return;
 
             _ = self.state.hash_block(&self.buf);
             self.buf_count = 0;
@@ -152,4 +152,15 @@ test "The ascii string 'The quick brown fox jumps over the lazy dog.'" {
     const input: []const u8 = "The quick brown fox jumps over the lazy dog.";
     const result = Hasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "de77f1c134228be1b5b25c941d5102f87f3e6d39"));
+}
+
+test "Calling update multiple times should be equivalent to passing all the data at once" {
+    const expected = Hasher.hash("The quick brown fox jumps over the lazy dog.The quick brown fox jumps over the lazy dog.The quick brown fox jumps over the lazy dog.");
+    var hasher = Hasher.init();
+    hasher.update("The quick brown fox jumps over the lazy dog.");
+    hasher.update("The quick brown fox jumps over the lazy dog.");
+    hasher.update("The quick brown fox jumps over the lazy dog.");
+    hasher.finalize();
+    const result = hasher.digest();
+    try testing.expect(std.mem.eql(u8, &result, &expected));
 }
