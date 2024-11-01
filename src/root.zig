@@ -13,7 +13,7 @@ const HashState = struct {
     d: u64,
     count: u64,
 
-    pub fn init() HashState {
+    fn init() HashState {
         return HashState{
             .a = 0x5d6daffc4411a967,
             .b = 0xe22d4dea68577f34,
@@ -23,7 +23,7 @@ const HashState = struct {
         };
     }
 
-    pub fn digest(self: HashState) [40]u8 {
+    fn digest(self: HashState) [40]u8 {
         const buf: [4]u64 = .{self.a, self.b, self.c, self.d};
         const bytes = std.mem.asBytes(&buf)[0..20];
         return std.fmt.bytesToHex(bytes, .lower);
