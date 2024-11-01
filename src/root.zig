@@ -1,9 +1,9 @@
 const std = @import("std");
 const testing = std.testing;
 
-const rotation_constants = [_]struct{u64, u64}{
-    .{16, 28}, .{14, 57}, .{11, 22}, .{35, 34},
-    .{57, 16}, .{59, 40}, .{44, 13},
+const rotation_constants = [_]struct { u64, u64 }{
+    .{ 16, 28 }, .{ 14, 57 }, .{ 11, 22 }, .{ 35, 34 },
+    .{ 57, 16 }, .{ 59, 40 }, .{ 44, 13 },
 };
 
 const HashState = struct {
@@ -24,7 +24,7 @@ const HashState = struct {
     }
 
     fn digest(self: HashState) [40]u8 {
-        const buf: [4]u64 = .{self.a, self.b, self.c, self.d};
+        const buf: [4]u64 = .{ self.a, self.b, self.c, self.d };
         const bytes = std.mem.asBytes(&buf)[0..20];
         return std.fmt.bytesToHex(bytes, .lower);
     }
@@ -69,9 +69,9 @@ const TentHasher = struct {
     done: bool,
 
     pub fn init() TentHasher {
-        return TentHasher {
+        return TentHasher{
             .state = HashState.init(),
-            .buf = .{ 0 } ** 32,
+            .buf = .{0} ** 32,
             .buf_count = 0,
             .done = false,
         };
@@ -125,7 +125,7 @@ test "Empty (no input data)" {
 }
 
 test "A single zero byte" {
-    const input = [_]u8{ 0 };
+    const input = [_]u8{0};
     const result = TentHasher.hash(&input);
     try testing.expect(std.mem.eql(u8, &result, "3cf6833cca9c4d5e211318577bab74bf12a4f090"));
 }
