@@ -62,14 +62,14 @@ const HashState = struct {
     }
 };
 
-const Hasher = struct {
+const TentHasher = struct {
     state: HashState,
     buf: [32]u8,
     buf_count: u8,
     done: bool,
 
-    pub fn init() Hasher {
-        return Hasher {
+    pub fn init() TentHasher {
+        return TentHasher {
             .state = HashState.init(),
             .buf = .{ 0 } ** 32,
             .buf_count = 0,
@@ -78,13 +78,13 @@ const Hasher = struct {
     }
 
     pub fn hash(data: []const u8) [40]u8 {
-        var hasher = Hasher.init();
+        var hasher = TentHasher.init();
         hasher.update(data);
         hasher.finalize();
         return hasher.digest();
     }
 
-    pub fn update(self: *Hasher, data: []const u8) void {
+    pub fn update(self: *TentHasher, data: []const u8) void {
         var buf = data;
         if (self.buf_count > 0) {
             const count = @min(data.len, 32 - self.buf_count);
@@ -107,56 +107,56 @@ const Hasher = struct {
         }
     }
 
-    pub fn finalize(self: *Hasher) void {
+    pub fn finalize(self: *TentHasher) void {
         if (self.buf_count > 0)
             _ = self.state.hash_block(self.buf[0..self.buf_count]);
         self.state.finalize();
     }
 
-    pub fn digest(self: Hasher) [40]u8 {
+    pub fn digest(self: TentHasher) [40]u8 {
         return self.state.digest();
     }
 };
 
 test "Empty (no input data)" {
     const input = [_]u8{};
-    const result = Hasher.hash(&input);
+    const result = TentHasher.hash(&input);
     try testing.expect(std.mem.eql(u8, &result, "68c8213b7a76b8ed267dddb3d8717bb3b6e7cc0a"));
 }
 
 test "A single zero byte" {
     const input = [_]u8{ 0 };
-    const result = Hasher.hash(&input);
+    const result = TentHasher.hash(&input);
     try testing.expect(std.mem.eql(u8, &result, "3cf6833cca9c4d5e211318577bab74bf12a4f090"));
 }
 
 test "The ascii string '0123456789'" {
     const input: []const u8 = "0123456789";
-    const result = Hasher.hash(input);
+    const result = TentHasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "a7d324bde0bf6ce3427701628f0f8fc329c2a116"));
 }
 
 test "The ascii string 'abcdefghijklmnopqrstuvwxyz'" {
     const input: []const u8 = "abcdefghijklmnopqrstuvwxyz";
-    const result = Hasher.hash(input);
+    const result = TentHasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "f1be4be1a0f9eae6500fb2f6b64f3daa3990ac1a"));
 }
 
 test "The ascii string 'This string is exactly 32 bytes.'" {
     const input: []const u8 = "This string is exactly 32 bytes.";
-    const result = Hasher.hash(input);
+    const result = TentHasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "f7c5e4763d89bddce33e97712b712d869aabcfe9"));
 }
 
 test "The ascii string 'The quick brown fox jumps over the lazy dog.'" {
     const input: []const u8 = "The quick brown fox jumps over the lazy dog.";
-    const result = Hasher.hash(input);
+    const result = TentHasher.hash(input);
     try testing.expect(std.mem.eql(u8, &result, "de77f1c134228be1b5b25c941d5102f87f3e6d39"));
 }
 
 test "Calling update multiple times should be equivalent to passing all the data at once" {
-    const expected = Hasher.hash("The quick brown fox jumps over the lazy dog.The quick brown fox jumps over the lazy dog.The quick brown fox jumps over the lazy dog.");
-    var hasher = Hasher.init();
+    const expected = TentHasher.hash("The quick brown fox jumps over the lazy dog.The quick brown fox jumps over the lazy dog.The quick brown fox jumps over the lazy dog.");
+    var hasher = TentHasher.init();
     hasher.update("The quick brown fox jumps over the lazy dog.");
     hasher.update("The quick brown fox jumps over the lazy dog.");
     hasher.update("The quick brown fox jumps over the lazy dog.");
